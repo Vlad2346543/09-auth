@@ -1,6 +1,6 @@
 'use client';
 
-import css from './sign-in/SignIn.module.css';
+import css from './SignIn.module.css';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api/clientApi';
