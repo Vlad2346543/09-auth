@@ -20,7 +20,7 @@ export default function Notes({ tag }: Props) {
 
   const debouncedSearch = useDebounce(search, 500);
 
-const { data } = useQuery<Note[]>
+const { data } = useQuery<{ notes: Note[]; totalPages: number }>
 ({
   queryKey: ['notes', page, tag, debouncedSearch],
   queryFn: () =>

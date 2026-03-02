@@ -5,7 +5,7 @@ import { Note } from '@/types/note';
 
 
 
-export const fetchNotes = async (): Promise<{ notes: Note[]; totalPages: number }> => {
+export const fetchNotes = async (p0: { page: number; perPage: number; tag: string | undefined; }): Promise<{ notes: Note[]; totalPages: number }> => {
   const cookieStore = cookies();
 
   const res = await api.get<{ notes: Note[]; totalPages: number }>('/notes', {
