@@ -1,12 +1,14 @@
 import { cookies } from 'next/headers';
 import { api } from './api';
 import { User } from '@/types/user';
+import { Note } from '@/types/note';
 
 
-export const fetchNotes = async (p0: { page: number; perPage: number; tag: string | undefined; }) => {
+
+export const fetchNotes = async (): Promise<{ notes: Note[]; totalPages: number }> => {
   const cookieStore = cookies();
 
-  const res = await api.get('/notes', {
+  const res = await api.get<{ notes: Note[]; totalPages: number }>('/notes', {
     headers: {
       Cookie: cookieStore.toString(),
     },
