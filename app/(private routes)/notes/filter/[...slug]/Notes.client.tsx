@@ -47,7 +47,7 @@ return (
       </Link>
     </div>
 
-    {data && <NoteList notes={data.notes} />}
+    {data && <NoteList notes={data} />}
 
     {data && (
       <Pagination
