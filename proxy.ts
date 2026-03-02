@@ -17,39 +17,35 @@ export default async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/profile') ||
     request.nextUrl.pathname.startsWith('/notes');
 
-  let isAuthenticated = false;
+  let isAuthenticated = !!accessToken;
+
+  let refreshedResponse: NextResponse | null = null;
 
 
-  if (accessToken) {
-    isAuthenticated = true;
-  }
-
- 
   if (!accessToken && refreshToken) {
     try {
       const response = await checkSession();
 
-   
-      if (response?.data) {
-        isAuthenticated = true;
-      }
-
-
       const setCookieHeader = response.headers['set-cookie'];
 
       if (setCookieHeader) {
-        const nextResponse = NextResponse.next();
+        refreshedResponse = NextResponse.next();
 
         setCookieHeader.forEach((cookie: string) => {
-          nextResponse.headers.append('set-cookie', cookie);
+          refreshedResponse!.headers.append('set-cookie', cookie);
         });
+      }
 
-        return nextResponse;
+      if (response?.data) {
+        isAuthenticated = true;
+      } else {
+        isAuthenticated = false;
       }
     } catch {
       isAuthenticated = false;
     }
   }
+
 
   if (!isAuthenticated && isPrivatePage) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
@@ -57,6 +53,11 @@ export default async function proxy(request: NextRequest) {
 
   if (isAuthenticated && isAuthPage) {
     return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  
+  if (refreshedResponse) {
+    return refreshedResponse;
   }
 
   return NextResponse.next();

@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import css from './NotePage.module.css';
 import { fetchNotes } from '@/lib/api/clientApi';
-
+import { Note } from '@/types/note';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import Pagination from '@/components/Pagination/Pagination';
 import NoteList from '@/components/NoteList/NoteList';
@@ -20,17 +20,20 @@ export default function Notes({ tag }: Props) {
 
   const debouncedSearch = useDebounce(search, 500);
 
-  const { data } = useQuery({
-    queryKey: ['notes', page, tag, debouncedSearch],
-    queryFn: () =>
-      fetchNotes({
-        page,
-        perPage: 12,
-        search: debouncedSearch || undefined,
-        tag: tag === 'all' ? undefined : tag,
-      }),
-    placeholderData: prev => prev,
-  });
+const { data } = useQuery<{
+  notes: Note[];
+  totalPages: number;
+}>({
+  queryKey: ['notes', page, tag, debouncedSearch],
+  queryFn: () =>
+    fetchNotes({
+      page,
+      perPage: 12,
+      search: debouncedSearch || undefined,
+      tag: tag === 'all' ? undefined : tag,
+    }),
+  placeholderData: prev => prev,
+});
 
   const handleSearch = (value: string) => {
     setPage(1);
@@ -47,15 +50,19 @@ return (
       </Link>
     </div>
 
-    {data && <NoteList notes={data} />}
 
-    {data && (
-      <Pagination
-        page={page}
-        totalPages={1}
-        onChange={setPage}
+    {data && data.notes.length > 0 ? (
+    <>
+      <NoteList notes={data.notes} />
+        <Pagination
+          page={page}
+          totalPages={data.totalPages}
+          onChange={(newPage) => setPage(newPage)}
       />
-    )}
+    </>
+) : (
+  <p>No notes found</p>
+)}
   </div>
 );
 }
