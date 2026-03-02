@@ -52,7 +52,7 @@ return (
     {data && (
       <Pagination
         page={page}
-        totalPages={data.totalPages}
+        totalPages={1}
         onChange={setPage}
       />
     )}
