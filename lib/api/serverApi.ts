@@ -3,7 +3,7 @@ import { api } from './api';
 import { User } from '@/types/user';
 
 
-export const fetchNotes = async () => {
+export const fetchNotes = async (p0: { page: number; perPage: number; tag: string | undefined; }) => {
   const cookieStore = cookies();
 
   const res = await api.get('/notes', {
@@ -50,5 +50,5 @@ export const checkSession = async () => {
     },
   });
 
-  return res.data;
+  return res;
 };

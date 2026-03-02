@@ -1,13 +1,16 @@
-'use client';
-
-import css from './Profile.module.css';
-import { useAuthStore } from '@/lib/store/authStore';
+import { getMe } from '@/lib/api/serverApi';
+import Image from 'next/image';
 import Link from 'next/link';
+import css from './Profile.module.css';
+import type { Metadata } from 'next';
 
-export default function ProfilePage() {
-  const user = useAuthStore((s) => s.user);
+export const metadata: Metadata = {
+  title: 'Profile',
+  description: 'User profile page',
+};
 
-  if (!user) return null;
+export default async function ProfilePage() {
+  const user = await getMe();
 
   return (
     <main className={css.mainContent}>
@@ -20,7 +23,7 @@ export default function ProfilePage() {
         </div>
 
         <div className={css.avatarWrapper}>
-          <img
+          <Image
             src={user.avatar}
             alt="User Avatar"
             width={120}

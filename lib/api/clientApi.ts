@@ -29,3 +29,32 @@ export const updateMe = async (data: { username: string }) => {
   const res = await api.patch<User>("/users/me", data);
   return res.data;
 };
+// GET /notes
+export const fetchNotes = async (params?: {
+  search?: string;
+  page?: number;
+  perPage?: number;
+  tag?: string;
+}) => {
+  const res = await api.get('/notes', { params });
+  return res.data;
+};
+
+export const fetchNoteById = async (id: string) => {
+  const res = await api.get(`/notes/${id}`);
+  return res.data;
+};
+
+export const createNote = async (data: {
+  title: string;
+  content: string;
+  tag: string;
+}) => {
+  const res = await api.post('/notes', data);
+  return res.data;
+};
+
+export const deleteNote = async (id: string) => {
+  const res = await api.delete(`/notes/${id}`);
+  return res.data;
+};
