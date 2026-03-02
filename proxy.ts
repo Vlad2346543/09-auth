@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
 import { checkSession } from '@/lib/api/serverApi';
 
 export default async function proxy(request: NextRequest) {
-  const accessToken = request.cookies.get('accessToken');
-  const refreshToken = request.cookies.get('refreshToken');
+  const cookieStore = await cookies();
+
+  const accessToken = cookieStore.get('accessToken');
+  const refreshToken = cookieStore.get('refreshToken');
 
   const isAuthPage =
     request.nextUrl.pathname.startsWith('/sign-in') ||
@@ -16,15 +19,32 @@ export default async function proxy(request: NextRequest) {
 
   let isAuthenticated = false;
 
+
   if (accessToken) {
     isAuthenticated = true;
   }
 
+ 
   if (!accessToken && refreshToken) {
     try {
-      const user = await checkSession();
-      if (user) {
+      const response = await checkSession();
+
+   
+      if (response?.data) {
         isAuthenticated = true;
+      }
+
+
+      const setCookieHeader = response.headers['set-cookie'];
+
+      if (setCookieHeader) {
+        const nextResponse = NextResponse.next();
+
+        setCookieHeader.forEach((cookie: string) => {
+          nextResponse.headers.append('set-cookie', cookie);
+        });
+
+        return nextResponse;
       }
     } catch {
       isAuthenticated = false;

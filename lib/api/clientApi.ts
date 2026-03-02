@@ -1,5 +1,6 @@
 import { api } from "../../app/api/api";
 import { User } from "@/types/user";
+import { Note } from '@/types/note';
 
 export const register = async (data: { email: string; password: string }) => {
   const res = await api.post<User>("/auth/register", data);
@@ -29,19 +30,19 @@ export const updateMe = async (data: { username: string }) => {
   const res = await api.patch<User>("/users/me", data);
   return res.data;
 };
-// GET /notes
+
 export const fetchNotes = async (params?: {
   search?: string;
   page?: number;
   perPage?: number;
   tag?: string;
-}) => {
-  const res = await api.get('/notes', { params });
+}): Promise<Note[]> => {
+  const res = await api.get<Note[]>('/notes', { params });
   return res.data;
 };
 
-export const fetchNoteById = async (id: string) => {
-  const res = await api.get(`/notes/${id}`);
+export const fetchNoteById = async (id: string): Promise<Note> => {
+  const res = await api.get<Note>(`/notes/${id}`);
   return res.data;
 };
 
@@ -49,12 +50,12 @@ export const createNote = async (data: {
   title: string;
   content: string;
   tag: string;
-}) => {
-  const res = await api.post('/notes', data);
+}): Promise<Note> => {
+  const res = await api.post<Note>('/notes', data);
   return res.data;
 };
 
-export const deleteNote = async (id: string) => {
-  const res = await api.delete(`/notes/${id}`);
+export const deleteNote = async (id: string): Promise<Note> => {
+  const res = await api.delete<Note>(`/notes/${id}`);
   return res.data;
 };
