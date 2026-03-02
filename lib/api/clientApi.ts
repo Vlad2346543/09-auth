@@ -36,8 +36,10 @@ export const fetchNotes = async (params?: {
   page?: number;
   perPage?: number;
   tag?: string;
-}): Promise<Note[]> => {
-  const res = await api.get<Note[]>('/notes', { params });
+}): Promise<{ notes: Note[]; totalPages: number }> => {
+  const res = await api.get<{ notes: Note[]; totalPages: number }>('/notes', {
+    params,
+  });
   return res.data;
 };
 
