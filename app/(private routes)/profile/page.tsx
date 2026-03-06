@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getMeServer } from "@/lib/api/serverApi";
+import { getServerMe } from "@/lib/api/serverApi";
 import { redirect } from 'next/navigation';
 import css from './Profile.module.css';
 export const dynamic = 'force-dynamic';
@@ -12,11 +12,11 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const user = await getMeServer();
+const user = await getServerMe();
 
-  if (!user) {
-    redirect('/sign-in');
-  }
+if (!user) {
+  redirect("/sign-in");
+}
 
   return (
     <main className={css.mainContent}>

@@ -2,6 +2,7 @@ import { api } from "./api";
 import { User } from "@/types/user";
 import { NewNote, Note } from "@/types/note";
 
+
 export interface LoginRequest {
   email: string;
   password: string;
