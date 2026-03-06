@@ -1,80 +1,72 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import css from './NotePage.module.css';
-import { fetchNotes } from '@/lib/api/clientApi';
-import { Note } from '@/types/note';
-import SearchBox from '@/components/SearchBox/SearchBox';
-import Pagination from '@/components/Pagination/Pagination';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import NoteList from '@/components/NoteList/NoteList';
+import css from './NotesPage.module.css';
+import { fetchNotes } from '@/lib/api/clientApi';
+import { useState } from 'react';
+import Pagination from '@/components/Pagination/Pagination';
+import SearchBox from '@/components/SearchBox/SearchBox';
+import { useDebouncedCallback } from 'use-debounce';
+import { Note, NoteTag } from '@/types/note';
+import { useRouter } from 'next/navigation';
 
-interface Props {
-  tag: string;
+interface FetchNotesResponse {
+  notes: Note[];
+  totalPages: number;
 }
 
-export default function Notes({ tag }: Props) {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+interface NotesClientProps {
+  initialData?: FetchNotesResponse;
+  tag?: NoteTag;
+}
 
-  const debouncedSearch = useDebounce(search, 500);
+const NotesClient = ({ initialData, tag }: NotesClientProps) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [query, setQuery] = useState('');
+  const router = useRouter();
 
-const { data } = useQuery<{ notes: Note[]; totalPages: number }>
-({
-  queryKey: ['notes', page, tag, debouncedSearch],
+ const { data, isLoading, error } = useQuery({
+  queryKey: ['notes', query, currentPage, tag],
   queryFn: () =>
     fetchNotes({
-      page,
+      search: query,
+      page: currentPage,
       perPage: 12,
-      search: debouncedSearch || undefined,
-      tag: tag === 'all' ? undefined : tag,
+      tag,
     }),
-  placeholderData: prev => prev,
+  placeholderData: keepPreviousData,
+  refetchOnMount: false,
+  initialData,
 });
 
-  const handleSearch = (value: string) => {
-    setPage(1);
-    setSearch(value);
+  const notes = data?.notes;
+  const totalPages = data?.totalPages;
+
+  const handleSearch = useDebouncedCallback((value: string) => {
+    setQuery(value);
+    setCurrentPage(1);
+  }, 300);
+
+  const handleRedirect = () => {
+    router.push('/notes/action/create');
   };
 
-return (
-  <div className={css.app}>
-    <div className={css.toolbar}>
-      <SearchBox onSearch={handleSearch} />
+  if (isLoading) return <p>Loading, please wait...</p>;
+  if (error || !notes) return <p>Something went wrong.</p>;
 
-      <Link href="/notes/action/create" className={css.createLink}>
-        Create note +
-      </Link>
+  return (
+    <div className={css.app}>
+      <header className={css.toolbar}>
+        <SearchBox onChange={handleSearch} />
+        {totalPages && totalPages > 1 && <Pagination totalPages={totalPages} page={currentPage} onPageChange={setCurrentPage} />}
+        <button className={css.button} onClick={handleRedirect}>
+          Create note +
+        </button>
+      </header>
+      {notes && !isLoading && <NoteList notes={notes} />}
     </div>
+  );
+};
 
-
-    {data && data.notes.length > 0 ? (
-    <>
-      <NoteList notes={data.notes} />
-        <Pagination
-          page={page}
-          totalPages={data.totalPages}
-          onChange={(newPage) => setPage(newPage)}
-      />
-    </>
-) : (
-  <p>No notes found</p>
-)}
-  </div>
-);
-}
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const id = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => clearTimeout(id);
-  }, [value, delay]);
-
-  return debouncedValue;
-}
+export default NotesClient;

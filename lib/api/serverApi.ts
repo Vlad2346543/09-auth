@@ -1,61 +1,70 @@
-import { cookies } from 'next/headers';
 import { api } from './api';
-import { Note } from '@/types/note';
+import { cookies } from 'next/headers';
+import { isAxiosError } from 'axios';
 import { User } from '@/types/user';
+import { Note } from '@/types/note';
 
-export const fetchNotes = async (
-  params?: {
-    search?: string;
-    page?: number;
-    perPage?: number;
-    tag?: string;
-  }
-): Promise<{ notes: Note[]; totalPages: number }> => {
-  const cookieStore = cookies();
-
-  const res = await api.get<{ notes: Note[]; totalPages: number }>('/notes', {
-    params,
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
-
-  return res.data;
+const getAuthHeaders = async () => {
+  const cookieStore = await cookies();
+  return { Cookie: cookieStore.toString() };
 };
-
-export const fetchNoteById = async (id: string): Promise<Note> => {
-  const cookieStore = cookies();
-
-  const res = await api.get<Note>(`/notes/${id}`, {
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
-
-  return res.data;
-};
-
-export const getMe = async () => {
-  const cookieStore = cookies();
-
-  const res = await api.get<User>('/users/me', {
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
-
-  return res.data;
-};
-
 
 export const checkSession = async () => {
-  const cookieStore = cookies();
+  try {
+    const headers = await getAuthHeaders();
+    return await api.get('/auth/session', { headers });
+  } catch {
+    return null;
+  }
+};
 
-  const res = await api.get<User | null>('/auth/session', {
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
+export const getMeServer = async (): Promise<User | null> => {
+  try {
+    const headers = await getAuthHeaders();
+    const { data } = await api.get<User>('/users/me', { headers });
+    return data;
+  } catch {
+    return null;
+  }
+};
 
-  return res;
+export const fetchNotesServer = async (
+  searchText: string = '',
+  page: number = 1,
+  tag?: string
+) => {
+  try {
+    const headers = await getAuthHeaders();
+
+    const params: Record<string, string | number | undefined> = {
+      search: searchText,
+      page,
+      perPage: 12,
+    };
+
+    if (tag && tag.toLowerCase() !== 'all') {
+      params.tag = tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase();
+    }
+
+    const { data } = await api.get('/notes', {
+      params,
+      headers,
+    });
+    return data;
+  } catch (error) {
+    if (isAxiosError(error)) {
+      console.log('Server API Error:', error.response?.data);
+    }
+    return null;
+  }
+};
+
+export const fetchNoteByIdServer = async (id: string): Promise<Note | null> => {
+  try {
+    const headers = await getAuthHeaders();
+    const { data } = await api.get<Note>(`/notes/${id}`, { headers });
+    return data;
+  } catch {
+    return null;
+  }
 };

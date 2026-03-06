@@ -1,45 +1,48 @@
 'use client';
-import { useEffect, useState, type ReactNode } from 'react';
+
 import { createPortal } from 'react-dom';
 import css from './Modal.module.css';
+import { useEffect } from 'react';
 
 interface ModalProps {
-  children: ReactNode;
+  children: React.ReactNode;
   onClose: () => void;
 }
 
-export default function Modal({ children, onClose }: ModalProps) {
-  const [mounted, setMounted] = useState(false);
-
+const Modal = ({ children, onClose }: ModalProps) => {
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-
-    document.body.style.overflow = 'hidden';
-
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
     };
 
-    window.addEventListener('keydown', handler);
+    document.addEventListener('keydown', handleKeydown);
 
     return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handler);
+      document.removeEventListener('keydown', handleKeydown);
     };
   }, [onClose]);
 
-  if (!mounted) return null;
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
-  const root = document.getElementById('modal-root');
-  if (!root) return null;
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
 
   return createPortal(
-    <div className={css.backdrop} onClick={onClose}>
-      <div className={css.modal} onClick={(e) => e.stopPropagation()}>
-        {children}
-      </div>
+    <div className={css.backdrop} onClick={handleClick} role="dialog" aria-modal="true" aria-label="modal">
+      <div className={css.modal}>{children}</div>
     </div>,
-    root
+    document.getElementById('modal-root') as HTMLDivElement
   );
-}
+};
+
+export default Modal;

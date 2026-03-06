@@ -1,48 +1,58 @@
-'use client';
-
-import Link from 'next/link';
-import type { Note } from '@/types/note';
-import { deleteNote } from '@/lib/api/clientApi';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Note } from '@/types/note';
 import css from './NoteList.module.css';
+import { fetchNoteById } from '@/lib/api/clientApi';
+import { useState } from 'react';
+import Link from 'next/link';
 
 interface NoteListProps {
   notes: Note[];
 }
 
-export default function NoteList({ notes }: NoteListProps) {
-  const client = useQueryClient();
+const NoteList = ({ notes }: NoteListProps) => {
+  const queryClient = useQueryClient();
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
-  const mutation = useMutation({
-    mutationFn: deleteNote,
+  const deleteNoteMutation = useMutation({
+    mutationFn: (noteId: string) => fetchNoteById(noteId),
+    onMutate: (noteId: string) => {
+      setDeletingNoteId(noteId);
+    },
     onSuccess: () => {
-      client.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
+    },
+    onSettled: () => {
+      setDeletingNoteId(null);
     },
   });
+
+  const handleDelete = (noteId: string) => {
+    deleteNoteMutation.mutate(noteId);
+  };
 
   return (
     <ul className={css.list}>
       {notes.map(note => (
-        <li key={note.id} className={css.listItem}>
+        <li className={css.listItem} key={note.id}>
           <h2 className={css.title}>{note.title}</h2>
-
           <p className={css.content}>{note.content}</p>
-
           <div className={css.footer}>
             <span className={css.tag}>{note.tag}</span>
-
-            {}
-            <Link href={`/notes/${note.id}`}>View details</Link>
-
+            <Link className={css.link} href={`/notes/${note.id}`}>
+              View details
+            </Link>
             <button
+              onClick={() => handleDelete(note.id)}
               className={css.button}
-              onClick={() => mutation.mutate(note.id)}
+              disabled={deletingNoteId === note.id && deleteNoteMutation.isPending}
             >
-              Delete
+              {deletingNoteId === note.id && deleteNoteMutation.isPending ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </li>
       ))}
     </ul>
   );
-}
+};
+
+export default NoteList;

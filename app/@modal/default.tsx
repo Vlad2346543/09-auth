@@ -1,3 +1,5 @@
-export default function SidebarDefault() {
+const Modal = () => {
   return null;
-}
+};
+
+export default Modal;

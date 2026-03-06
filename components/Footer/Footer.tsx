@@ -1,20 +1,20 @@
 import css from './Footer.module.css';
 
-export default function Footer() {
+const Footer = () => {
   return (
     <footer className={css.footer}>
       <div className={css.content}>
         <p>© {new Date().getFullYear()} NoteHub. All rights reserved.</p>
-
         <div className={css.wrap}>
-          <p>Developer: Vlad</p>
-
+          <p>Developer: Vladyslav Borodkin</p>
           <p>
-            Contact us:{' '}
-            <a href="mailto:student@notehub.app">student@notehub.app</a>
+            Contact us:
+            <a href="mailto:borodkin.vladyslav@gmail.com"> borodkin.vladyslav@gmail.com</a>
           </p>
         </div>
       </div>
     </footer>
   );
-}
+};
+
+export default Footer;
