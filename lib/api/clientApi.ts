@@ -1,6 +1,6 @@
 import { api } from "./api";
 import { User } from "@/types/user";
-import { Note } from "@/types/note";
+import { NewNote, Note } from "@/types/note";
 
 export interface LoginRequest {
   email: string;
@@ -11,6 +11,11 @@ export interface RegisterRequest {
   email: string;
   password: string;
 }
+
+export const createNote = async (note: NewNote): Promise<Note> => {
+  const { data } = await api.post<Note>('/notes', note);
+  return data;
+};
 
 export const register = async (userData: LoginRequest): Promise<User> => {
   const { data } = await api.post<User>("/auth/register", userData);
