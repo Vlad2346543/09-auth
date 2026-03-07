@@ -9,11 +9,13 @@ import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import { useDebouncedCallback } from 'use-debounce';
 import { Note, NoteTag } from '@/types/note';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface FetchNotesResponse {
   notes: Note[];
-  totalPages: number;
+  page: number;
+  perPage: number;
+  total: number;
 }
 
 interface NotesClientProps {
@@ -22,49 +24,53 @@ interface NotesClientProps {
 }
 
 const NotesClient = ({ initialData, tag }: NotesClientProps) => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [query, setQuery] = useState('');
-  const router = useRouter();
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [query, setQuery] = useState<string>('');
 
- const { data, isLoading, error } = useQuery({
-  queryKey: ['notes', query, currentPage, tag],
-  queryFn: () =>
-    fetchNotes({
-      search: query,
-      page: currentPage,
-      perPage: 12,
-      tag,
-    }),
-  placeholderData: keepPreviousData,
-  refetchOnMount: false,
-  initialData,
-});
+  const { data, isLoading, error } = useQuery<FetchNotesResponse>({
+    queryKey: ['notes', query, currentPage, tag],
+    queryFn: () =>
+      fetchNotes({
+        search: query,
+        page: currentPage,
+        perPage: 12,
+        tag,
+      }),
+    placeholderData: keepPreviousData,
+    refetchOnMount: false,
+    initialData,
+  });
 
-  const notes = data?.notes;
-  const totalPages = data?.totalPages;
+  const notes = data?.notes ?? [];
+  const totalPages = data ? Math.ceil(data.total / data.perPage) : 0;
 
   const handleSearch = useDebouncedCallback((value: string) => {
     setQuery(value);
     setCurrentPage(1);
   }, 300);
 
-  const handleRedirect = () => {
-    router.push('/notes/action/create');
-  };
-
   if (isLoading) return <p>Loading, please wait...</p>;
-  if (error || !notes) return <p>Something went wrong.</p>;
+  if (error) return <p>Something went wrong.</p>;
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox onChange={handleSearch} />
-        {totalPages && totalPages > 1 && <Pagination totalPages={totalPages} page={currentPage} onPageChange={setCurrentPage} />}
-        <button className={css.button} onClick={handleRedirect}>
+
+        {totalPages > 1 && (
+          <Pagination
+            totalPages={totalPages}
+            page={currentPage}
+            onPageChange={setCurrentPage}
+          />
+        )}
+
+        <Link href="/notes/action/create" className={css.button}>
           Create note +
-        </button>
+        </Link>
       </header>
-      {notes && !isLoading && <NoteList notes={notes} />}
+
+      <NoteList notes={notes} />
     </div>
   );
 };

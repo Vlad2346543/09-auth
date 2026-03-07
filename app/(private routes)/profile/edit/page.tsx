@@ -9,7 +9,7 @@ import { useAuthStore } from '@/lib/store/authStore';
 import { User } from '@/types/user';
 
 const EditProfile = () => {
-  const [userData, setUserData] = useState<User>();
+  const [userData, setUserData] = useState<User | null>(null);
   const setUser = useAuthStore(state => state.setUser);
   const router = useRouter();
 
@@ -17,11 +17,14 @@ const EditProfile = () => {
     getMe().then(setUserData);
   }, []);
 
-  const handleSubmit = async () => {
-    if (!userData) return;
+  const handleSubmit = async (formData: FormData) => {
+    const username = formData.get('username') as string;
+
     try {
-      setUser(userData);
-      await updateMe({ username: userData?.username });
+      const updatedUser = await updateMe({ username });
+
+      setUser(updatedUser);
+
       router.push('/profile');
     } catch (error) {
       console.error('Oops, some error:', error);
@@ -37,17 +40,30 @@ const EditProfile = () => {
       <div className={css.profileCard}>
         <h1 className={css.formTitle}>Edit Profile</h1>
 
-        {userData?.avatar && <Image src={userData?.avatar} alt="User Avatar" width={120} height={120} className={css.avatar} />}
+        {userData?.avatar && (
+          <Image
+            src={userData.avatar}
+            alt="User Avatar"
+            width={120}
+            height={120}
+            className={css.avatar}
+          />
+        )}
 
         <form className={css.profileInfo} action={handleSubmit}>
           <div className={css.usernameWrapper}>
             <label htmlFor="username">Username:</label>
             <input
               id="username"
+              name="username"
               type="text"
               className={css.input}
-              value={userData?.username}
-              onChange={e => setUserData(userData ? { ...userData, username: e.target.value } : undefined)}
+              defaultValue={userData?.username}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setUserData(prev =>
+                  prev ? { ...prev, username: e.target.value } : null
+                )
+              }
             />
           </div>
 
@@ -57,7 +73,12 @@ const EditProfile = () => {
             <button type="submit" className={css.saveButton}>
               Save
             </button>
-            <button type="button" className={css.cancelButton} onClick={handleReturn}>
+
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={handleReturn}
+            >
               Cancel
             </button>
           </div>
