@@ -17,14 +17,16 @@ const EditProfile = () => {
     getMe().then(setUserData);
   }, []);
 
-  const handleSubmit = async (formData: FormData) => {
-    const username = formData.get('username') as string;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); // Запобігаємо перезавантаженню сторінки
+    
+    if (!userData?.username) return;
 
     try {
-      const updatedUser = await updateMe({ username });
+      // Використовуємо значення безпосередньо зі стейту, оскільки компонент контрольований
+      const updatedUser = await updateMe({ username: userData.username });
 
       setUser(updatedUser);
-
       router.push('/profile');
     } catch (error) {
       console.error('Oops, some error:', error);
@@ -50,15 +52,15 @@ const EditProfile = () => {
           />
         )}
 
-        <form className={css.profileInfo} action={handleSubmit}>
+        <form className={css.profileInfo} onSubmit={handleSubmit}>
           <div className={css.usernameWrapper}>
             <label htmlFor="username">Username:</label>
             <input
               id="username"
               name="username"
               type="text"
-              className={css.input}
-              defaultValue={userData?.username}
+              className={css.input}           
+              value={userData?.username || ''} 
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setUserData(prev =>
                   prev ? { ...prev, username: e.target.value } : null
@@ -67,7 +69,18 @@ const EditProfile = () => {
             />
           </div>
 
-          <p>Email: {userData?.email}</p>
+          <div className={css.usernameWrapper}>
+            <label htmlFor="email">Email:</label>
+            {/* ВІЗУАЛЬНО ОЧЕВИДНО, ЩО ПОЛЕ ТІЛЬКИ ДЛЯ ЧИТАННЯ */}
+            <input
+              id="email"
+              type="email"
+              value={userData?.email || ''}
+              disabled // Робить поле сірим та неактивним
+              readOnly // Додатковий захист від введення
+              className={`${css.input} ${css.disabledInput}`} 
+            />
+          </div>
 
           <div className={css.actions}>
             <button type="submit" className={css.saveButton}>

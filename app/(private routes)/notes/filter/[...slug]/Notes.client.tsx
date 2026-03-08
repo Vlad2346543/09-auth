@@ -8,26 +8,20 @@ import { useState } from 'react';
 import Pagination from '@/components/Pagination/Pagination';
 import SearchBox from '@/components/SearchBox/SearchBox';
 import { useDebouncedCallback } from 'use-debounce';
-import { Note, NoteTag } from '@/types/note';
+import { NoteTag } from '@/types/note';
 import Link from 'next/link';
 
-interface FetchNotesResponse {
-  notes: Note[];
-  page: number;
-  perPage: number;
-  total: number;
-}
 
 interface NotesClientProps {
-  initialData?: FetchNotesResponse;
   tag?: NoteTag;
 }
 
-const NotesClient = ({ initialData, tag }: NotesClientProps) => {
+const NotesClient = ({ tag }: NotesClientProps) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [query, setQuery] = useState<string>('');
 
-  const { data, isLoading, error } = useQuery<FetchNotesResponse>({
+  const { data, isLoading, error } = useQuery({
+   
     queryKey: ['notes', query, currentPage, tag],
     queryFn: () =>
       fetchNotes({
@@ -37,8 +31,8 @@ const NotesClient = ({ initialData, tag }: NotesClientProps) => {
         tag,
       }),
     placeholderData: keepPreviousData,
-    refetchOnMount: false,
-    initialData,
+  
+    staleTime: 60 * 1000, 
   });
 
   const notes = data?.notes ?? [];
@@ -49,7 +43,7 @@ const NotesClient = ({ initialData, tag }: NotesClientProps) => {
     setCurrentPage(1);
   }, 300);
 
-  if (isLoading) return <p>Loading, please wait...</p>;
+  if (isLoading && !data) return <p>Loading, please wait...</p>;
   if (error) return <p>Something went wrong.</p>;
 
   return (
