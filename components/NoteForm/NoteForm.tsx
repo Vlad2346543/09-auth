@@ -45,13 +45,20 @@ const NoteForm = () => {
 
   return (
     <form className={css.form} action={handleSubmit}>
-      <div className={css.formGroup}>
-        <label htmlFor="title">Title</label>
-        <input id={`${fieldId}-title`} type="text" name="title" defaultValue={draft.title} onChange={handleChange} className={css.input} />
+    <div className={css.formGroup}>
+        <label htmlFor={`${fieldId}-title`}>Title</label>
+        <input 
+          id={`${fieldId}-title`} 
+          type="text" 
+          name="title" 
+          defaultValue={draft.title} 
+          onChange={handleChange} 
+          className={css.input} 
+        />
       </div>
 
       <div className={css.formGroup}>
-        <label htmlFor="content">Content</label>
+        <label htmlFor={`${fieldId}-content`}>Content</label>
         <textarea
           id={`${fieldId}-content`}
           name="content"
@@ -63,8 +70,13 @@ const NoteForm = () => {
       </div>
 
       <div className={css.formGroup}>
-        <label htmlFor="tag">Tag</label>
-        <select id={`${fieldId}-tag`} name="tag" className={css.select} defaultValue={draft.tag} onChange={handleChange}>
+        <select 
+          id={`${fieldId}-tag`} 
+          name="tag" 
+          className={css.select} 
+          defaultValue={draft.tag} 
+          onChange={handleChange}
+        >
           <option value="Todo">Todo</option>
           <option value="Work">Work</option>
           <option value="Personal">Personal</option>
@@ -72,15 +84,9 @@ const NoteForm = () => {
           <option value="Shopping">Shopping</option>
         </select>
       </div>
-
-      <div className={css.actions}>
-        <button type="button" className={css.cancelButton} onClick={handleClose}>
-          Cancel
-        </button>
-        <button type="submit" className={css.submitButton} disabled={false}>
-          Create note
-        </button>
-      </div>
+      <button className={css.submitButton} type="submit">
+        Create note
+      </button>
     </form>
   );
 };
