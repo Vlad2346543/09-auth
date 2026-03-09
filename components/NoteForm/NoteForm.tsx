@@ -15,7 +15,9 @@ const NoteForm = () => {
 
   const { draft, setDraft, clearDraft } = useNoteDraftStore();
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     setDraft({
       ...draft,
       [event.target.name]: event.target.value,
@@ -23,6 +25,7 @@ const NoteForm = () => {
   };
 
   const handleClose = () => {
+    clearDraft();
     router.back();
   };
 
@@ -31,7 +34,7 @@ const NoteForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       clearDraft();
-      handleClose();
+      router.back();
     },
   });
 
@@ -45,15 +48,15 @@ const NoteForm = () => {
 
   return (
     <form className={css.form} action={handleSubmit}>
-    <div className={css.formGroup}>
+      <div className={css.formGroup}>
         <label htmlFor={`${fieldId}-title`}>Title</label>
-        <input 
-          id={`${fieldId}-title`} 
-          type="text" 
-          name="title" 
-          defaultValue={draft.title} 
-          onChange={handleChange} 
-          className={css.input} 
+        <input
+          id={`${fieldId}-title`}
+          type="text"
+          name="title"
+          defaultValue={draft.title}
+          onChange={handleChange}
+          className={css.input}
         />
       </div>
 
@@ -70,11 +73,11 @@ const NoteForm = () => {
       </div>
 
       <div className={css.formGroup}>
-        <select 
-          id={`${fieldId}-tag`} 
-          name="tag" 
-          className={css.select} 
-          defaultValue={draft.tag} 
+        <select
+          id={`${fieldId}-tag`}
+          name="tag"
+          className={css.select}
+          defaultValue={draft.tag}
           onChange={handleChange}
         >
           <option value="Todo">Todo</option>
@@ -84,9 +87,20 @@ const NoteForm = () => {
           <option value="Shopping">Shopping</option>
         </select>
       </div>
-      <button className={css.submitButton} type="submit">
-        Create note
-      </button>
+
+      <div className={css.actions}>
+        <button className={css.submitButton} type="submit">
+          Create note
+        </button>
+
+        <button
+          className={css.cancelButton}
+          type="button"
+          onClick={handleClose}
+        >
+          Cancel
+        </button>
+      </div>
     </form>
   );
 };
